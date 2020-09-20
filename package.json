@@ -1,0 +1,24 @@
+{
+  "name": "random-omok-online",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngwoon/random-omok-online.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ngwoon/random-omok-online/issues"
+  },
+  "homepage": "https://github.com/ngwoon/random-omok-online#readme",
+  "dependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
