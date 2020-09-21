@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ngwoon/random-omok-online#readme",
   "dependencies": {
+    "cookie": "^0.4.1",
     "nodemon": "^2.0.4"
   }
 }

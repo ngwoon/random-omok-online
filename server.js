@@ -1,8 +1,11 @@
 const http = require("http");
 const url = require("url");
 const path = require("path");
-const fs = require('fs');
-const queryString = require("querystring");
+const fs = require("fs");
+const omok = require("./omok.js");
+const cookie = require('cookie');
+
+const USER_LIMIT = 10000;
 
 const mimeTypes = {
     '.html': 'text/html',
@@ -22,18 +25,72 @@ const mimeTypes = {
     '.wasm': 'application/wasm'
 };
 
-const server = http.createServer(function(request, response) {
+const router = {
+    'GET/check': checkHandler,
+    'GET/': indexHandler,
+    'GET/resource': resourceHandler,
+    'default': noResponse
+};
+
+function checkHandler(request, response) {
+    const cookies = cookie.parse(request.headers.cookie);
+    console.log(request.headers.cookie, cookies.user_name);
+    const userName = cookies.user_name;
+    omok.waitings[userName] = response;
+    omok.matching.emit("wait", userName);
+}
+
+function indexHandler(request, response) {
+    let cookies = null;
+    if(request.headers.cookie !== undefined)
+        cookies = "Cookie Exists";
+    
     const parsedUrl = url.parse(request.url);
     let resource = parsedUrl.pathname.substr(1);
 
-    // 요청한 html 파일에서 css, 혹은 js 파일을 요구할 경우
+    if(resource === "")
+        resource = "index";
+        
+    resource = `./client/${resource}.html`;
+
+    fs.readFile(resource, "utf-8", function(error, data) {
+        if(error) {
+            console.log(`page read error : ${error}`);
+            noResponse(req, res);
+        }
+        else {
+            if(cookies !== null) {
+                response.writeHead(200, {"Content-Type": "text/html"});
+            }
+            else {
+                const userName = omok.genUserNum(USER_LIMIT);
+                console.log(userName);
+                response.writeHead(200, {
+                    "Content-Type": "text/html",
+                    "Set-Cookie": [`user_name=${userName}`],
+                    "httpOnly": true
+                });
+                omok.waitings[userName] = null;
+            }
+            response.end(data);
+        }
+    });
+}
+function noResponse(request, response) {
+    fs.readFile("./client/404.html", "utf-8", function(error, data) {
+        response.writeHead(404, {"Content-Type": "text/html"});
+        response.end(data);
+    });
+}
+function resourceHandler(request, response) {
+    const parsedUrl = url.parse(request.url);
+    let resource = parsedUrl.pathname.substr(1);
+    
     const extName = path.extname(resource);
-    console.log(extName);
     if(extName) {
         const parsedResource = path.parse(resource);
         try {
             const res = fs.readFileSync("."+parsedUrl.pathname, "utf-8");
-            console.log(res);
             response.writeHead(200, {"Content-Type": mimeTypes[parsedResource.ext]});
             response.end(res);
         } catch (error){
@@ -41,25 +98,18 @@ const server = http.createServer(function(request, response) {
             response.writeHead(500, {"Content-Type": "text"});
             response.end(fs.readFileSync("./server_error_page.html", "utf-8"));
         }
-    } else {
-        if(resource === "")
-            resource = "index";
-        
-        resource = `./client/${resource}.html`;
-
-        fs.readFile(resource, "utf-8", function(error, data) {
-            console.log(error);
-            if(error) {
-                fs.readFile("./client/404.html", "utf-8", function(error, data) {
-                    response.writeHead(404, {"Content-Type": "text/html"});
-                    response.end(data);
-                });
-            } else {
-                response.writeHead(200, {"Content-Type": "text/html"});
-                response.end(data);
-            }
-        });
     }
+}
+
+const server = http.createServer(function(request, response) {
+    const parsedUrl = url.parse(request.url);
+    const parsedUrlByPath = path.parse(request.url);
+    if(parsedUrlByPath.ext)
+        parsedUrl.pathname = "/resource";
+    
+    console.log(request.method + parsedUrl.pathname);
+    const redirectedFunc = router[request.method + parsedUrl.pathname] || router["default"];
+    redirectedFunc(request, response);
 });
 
 server.listen(8080, function() {
