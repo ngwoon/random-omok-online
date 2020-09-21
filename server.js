@@ -34,17 +34,6 @@ const router = {
     'default': noResponse
 };
 
-// function readyHandler(request, response) {
-//     const parsedUrl = url.parse(request.url);
-//     try {
-//         const readyPage = fs.readFileSync()
-//     } 
-// }
-
-// function gameHandler(request, response) {
-
-// }
-
 function checkHandler(request, response) {
     const cookies = cookie.parse(request.headers.cookie);
     console.log(request.headers.cookie, cookies.user_name);
@@ -65,8 +54,6 @@ function indexHandler(request, response) {
         resource = "index";
         
     resource = `./client/${resource}.html`;
-
-    console.log(`resource = ${resource}`);
 
     fs.readFile(resource, "utf-8", function(error, data) {
         if(error) {
