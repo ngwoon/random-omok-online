@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const EventEmitter = require('events');
 
 exports.waitings = {};
@@ -15,10 +17,24 @@ exports.matching.on("wait", function(userName) {
         }
 
         if(Object.keys(matchPlayers).length == 2) {
+            
+            const keyToArr = Object.keys(matchPlayers);
+
+            exports.inGame[keyToArr[0]] = keyToArr[1];
+            exports.inGame[keyToArr[1]] = keyToArr[0];
+
             for(key in matchPlayers) {
                 delete exports.waitings[key];
-                matchPlayers[key].writeHead(200);
-                matchPlayers[key].end();
+                const curResponse = matchPlayers[key];
+                try {
+                    const readyPage = fs.readFileSync(path.resolve(__dirname, "./client/ready.html"), "utf-8");
+                    curResponse.writeHead(200, {"Content-Type": "text/html"});
+                    curResponse.end(readyPage);
+                } catch(error) {
+                    const serverErrorPage = fs.readFileSync(path.resolve(__dirname, "./server_error_page.html"), "utf-8");
+                    curResponse.writeHead(500, {"Content-Type": "text/html"});
+                    curResponse.end(serverErrorPage);
+                }
             }
         }
     }

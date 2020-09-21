@@ -26,11 +26,24 @@ const mimeTypes = {
 };
 
 const router = {
-    'GET/check': checkHandler,
     'GET/': indexHandler,
     'GET/resource': resourceHandler,
+    'GET/check': checkHandler,
+    'GET/ready': indexHandler,
+    'GET/game': indexHandler,
     'default': noResponse
 };
+
+// function readyHandler(request, response) {
+//     const parsedUrl = url.parse(request.url);
+//     try {
+//         const readyPage = fs.readFileSync()
+//     } 
+// }
+
+// function gameHandler(request, response) {
+
+// }
 
 function checkHandler(request, response) {
     const cookies = cookie.parse(request.headers.cookie);
@@ -52,6 +65,8 @@ function indexHandler(request, response) {
         resource = "index";
         
     resource = `./client/${resource}.html`;
+
+    console.log(`resource = ${resource}`);
 
     fs.readFile(resource, "utf-8", function(error, data) {
         if(error) {
@@ -94,7 +109,7 @@ function resourceHandler(request, response) {
             response.writeHead(200, {"Content-Type": mimeTypes[parsedResource.ext]});
             response.end(res);
         } catch (error){
-            console.log(error);
+            console.log(`server error : ${error}`);
             response.writeHead(500, {"Content-Type": "text"});
             response.end(fs.readFileSync("./server_error_page.html", "utf-8"));
         }

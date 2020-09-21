@@ -16,8 +16,8 @@ function init() {
     fetch(SERVER+"/check").then((response) => {
         console.log(response.ok);
         if(response.ok) {
-            info.innerHTML = "상대를 찾았습니다!";
             clearInterval(waitInterval);
+            location.href = SERVER+"/ready";
         }
     });
 }
