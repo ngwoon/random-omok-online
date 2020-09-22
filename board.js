@@ -1,8 +1,14 @@
 const BOARD_SIZE = 18;
 
 function Board(p1name, p1ws, p2name, p2ws) {
-    this.pws = {p1name: p1ws, p2name: p2ws};
-    this.pidx = {p1name: 0, p2name: 1};
+    this.pws = {};
+    this.pws[p1name] = p1ws;
+    this.pws[p2name] = p2ws;
+
+    this.pidx = {};
+    this.pidx[p1name] = 0;
+    this.pidx[p2name] = 1;
+
     this.pname = [p1name, p2name];
     this.board = new Array(BOARD_SIZE);
     for(let i=0; i<this.board.length; ++i) {
@@ -12,6 +18,8 @@ function Board(p1name, p1ws, p2name, p2ws) {
     }
 
     this.judge = function(_y, _x, stone, board) {
+        console.log(`stone = ${stone}`);
+        
         let x = _x, y = _y;
         let count=0;
     
@@ -40,7 +48,6 @@ function Board(p1name, p1ws, p2name, p2ws) {
             ++count;
         if(count == 5)
             return true;
-    
     
         x = _x; y = _y;
         count = 0;

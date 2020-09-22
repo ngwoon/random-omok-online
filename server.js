@@ -137,15 +137,17 @@ wss.on("connection", function(ws) {
                 const counter = match.readyPlayers[userName];
 
                 if(inGame.clientWs[counter] !== undefined) {
-                    const board = new Board(userName, match.readyPlayers[userName], counter, match.readyPlayers[counter]);
+                    const board = new Board(userName, ws, counter, inGame.clientWs[counter]);
 
                     inGame.boardTable[userName] = board;
                     inGame.boardTable[counter] = board;
 
+                    console.log(board);
+                    console.log(userName);
+                    console.log(counter);
+
                     delete match.readyPlayers[userName];
                     delete match.readyPlayers[counter];
-
-                    console.log(board);
 
                     const msgToP1 = incodeMsg({"type": "connection", "data": board.pidx[userName]});
                     const msgToP2 = incodeMsg({"type": "connection", "data": board.pidx[counter]});
@@ -162,17 +164,17 @@ wss.on("connection", function(ws) {
 
             case "pos":
                 const pos = msg.data.substr(1).split("-");
-                
-                console.log(pos);
 
                 userName = msg.sender;
+                
                 const board = inGame.boardTable[userName];
+                
                 const isOver = board.judge(pos[0], pos[1], board.pidx[userName], board.board);
 
                 const userWs = board.pws[userName];
                 const counterWs = board.pws[board.pname[board.pidx[userName]^1]];
 
-                let msgToSend = incodeMsg({"type": "pos", "data": msg.data});
+                let msgToSend = incodeMsg({"type": "pos", "data": msg.data, "color": board.pidx[userName]});
 
                 userWs.send(msgToSend);
                 counterWs.send(msgToSend);

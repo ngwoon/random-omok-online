@@ -1,8 +1,8 @@
 const BOARD_SIZE = 18;
 
-function paintStone(pos) {
+function paintStone(pos, color) {
     const piece = document.querySelector("#"+pos);
-    piece.classList.add(COLOR === 0 ? "black-stone" : "white-stone");
+    piece.classList.add(color === 0 ? "black-stone" : "white-stone");
 }
 
 function onPieceClick(pos) {
@@ -53,7 +53,7 @@ ws.onopen = function(event) {
 }
 
 ws.onmessage = function(event) {
-    const message = event.data;
+    const message = decodeMsg(event.data);
     switch(message.type) {
         case "connection":
             COLOR = message.data;
@@ -61,7 +61,8 @@ ws.onmessage = function(event) {
 
         case "pos":
             const pos = message.data;
-            paintStone(pos);
+            const color = message.color;
+            paintStone(pos, color);
             break;
         
         case "end":
