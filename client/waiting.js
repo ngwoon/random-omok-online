@@ -2,6 +2,12 @@ const SERVER = "http://localhost:8080";
 
 function init() {
     const info = document.querySelector(".js-info");
+    const cookie = document.cookie;
+
+    const cookieArr = cookie.split("=");
+
+    localStorage.setItem(cookieArr[0], cookieArr[1]);
+
     let counter=0;
     const waitInterval = setInterval(() => {
         if(counter == 4) {

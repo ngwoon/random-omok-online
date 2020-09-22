@@ -2,8 +2,12 @@ const http = require("http");
 const url = require("url");
 const path = require("path");
 const fs = require("fs");
-const omok = require("./omok.js");
+const match = require("./match.js");
+const inGame = require("./in_game.js");
+const Board = require("./board.js");
 const cookie = require('cookie');
+const WebSocketServer = require("ws").Server;
+const wss = new WebSocketServer({port:3000});
 
 const USER_LIMIT = 10000;
 
@@ -36,10 +40,9 @@ const router = {
 
 function checkHandler(request, response) {
     const cookies = cookie.parse(request.headers.cookie);
-    console.log(request.headers.cookie, cookies.user_name);
     const userName = cookies.user_name;
-    omok.waitings[userName] = response;
-    omok.matching.emit("wait", userName);
+    match.waitings[userName] = response;
+    match.matching.emit("wait");
 }
 
 function indexHandler(request, response) {
@@ -65,14 +68,13 @@ function indexHandler(request, response) {
                 response.writeHead(200, {"Content-Type": "text/html"});
             }
             else {
-                const userName = omok.genUserNum(USER_LIMIT);
-                console.log(userName);
+                const userName = match.genUserNum(USER_LIMIT);
                 response.writeHead(200, {
                     "Content-Type": "text/html",
                     "Set-Cookie": [`user_name=${userName}`],
                     "httpOnly": true
                 });
-                omok.waitings[userName] = null;
+                match.waitings[userName] = null;
             }
             response.end(data);
         }
@@ -112,6 +114,81 @@ const server = http.createServer(function(request, response) {
     console.log(request.method + parsedUrl.pathname);
     const redirectedFunc = router[request.method + parsedUrl.pathname] || router["default"];
     redirectedFunc(request, response);
+});
+
+function decodeMsg(message) {
+    return JSON.parse(message);
+}
+
+function incodeMsg(message) {
+    return JSON.stringify(message);
+}
+
+wss.on("connection", function(ws) {
+    ws.on("message", function(message) {
+
+        const msg = decodeMsg(message);
+
+        let userName;
+        switch(msg.type) {
+            case "connection":
+                console.log("connection message!!");
+                userName = msg.data;
+                const counter = match.readyPlayers[userName];
+
+                if(inGame.clientWs[counter] !== undefined) {
+                    const board = new Board(userName, match.readyPlayers[userName], counter, match.readyPlayers[counter]);
+
+                    inGame.boardTable[userName] = board;
+                    inGame.boardTable[counter] = board;
+
+                    delete match.readyPlayers[userName];
+                    delete match.readyPlayers[counter];
+
+                    console.log(board);
+
+                    const msgToP1 = incodeMsg({"type": "connection", "data": board.pidx[userName]});
+                    const msgToP2 = incodeMsg({"type": "connection", "data": board.pidx[counter]});
+
+                    ws.send(msgToP1);
+                    inGame.clientWs[counter].send(msgToP2);
+
+                    delete inGame.clientWs[counter];
+                }
+                else
+                    inGame.clientWs[userName] = ws;
+
+                break;
+
+            case "pos":
+                const pos = msg.data.substr(1).split("-");
+                
+                console.log(pos);
+
+                userName = msg.sender;
+                const board = inGame.boardTable[userName];
+                const isOver = board.judge(pos[0], pos[1], board.pidx[userName], board.board);
+
+                const userWs = board.pws[userName];
+                const counterWs = board.pws[board.pname[board.pidx[userName]^1]];
+
+                let msgToSend = incodeMsg({"type": "pos", "data": msg.data});
+
+                userWs.send(msgToSend);
+                counterWs.send(msgToSend);
+
+                if(isOver) {
+                    msgToSend = incodeMsg({"type": "end", "data": color});
+                    ws.send(msgToSend);
+                    counterWs.send(msgToSend);
+
+                    ws.close();
+                    counterWs.close();
+                }
+
+                break;
+        }
+    });
 });
 
 server.listen(8080, function() {

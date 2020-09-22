@@ -1,14 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 const EventEmitter = require('events');
 
 exports.waitings = {};
-exports.inGame = {};
+exports.readyPlayers = {};
 exports.matching = new EventEmitter();
-exports.matching.on("wait", function(userName) {
+exports.matching.on("wait", function() {
     const matchPlayers = {};
     if(Object.keys(exports.waitings).length >= 2) {
-        console.log(Object.keys(exports.waitings));
         for(key in exports.waitings) {
             if(exports.waitings[key] !== null)
                 matchPlayers[key] = exports.waitings[key];
@@ -16,12 +15,11 @@ exports.matching.on("wait", function(userName) {
                 break;
         }
 
-        if(Object.keys(matchPlayers).length == 2) {
-            
+        if(Object.keys(matchPlayers).length === 2) {
             const keyToArr = Object.keys(matchPlayers);
 
-            exports.inGame[keyToArr[0]] = keyToArr[1];
-            exports.inGame[keyToArr[1]] = keyToArr[0];
+            exports.readyPlayers[keyToArr[0]] = keyToArr[1];
+            exports.readyPlayers[keyToArr[1]] = keyToArr[0];
 
             for(key in matchPlayers) {
                 delete exports.waitings[key];
@@ -38,6 +36,7 @@ exports.matching.on("wait", function(userName) {
             }
         }
     }
+    return matchPlayers;
 });
 
 // exports.matching.on("find", function(userName, response, idx) {
