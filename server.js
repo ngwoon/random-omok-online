@@ -179,8 +179,10 @@ wss.on("connection", function(ws) {
                 userWs.send(msgToSend);
                 counterWs.send(msgToSend);
 
+                console.log(isOver);
+
                 if(isOver) {
-                    msgToSend = incodeMsg({"type": "end", "data": color});
+                    msgToSend = incodeMsg({"type": "end", "data": board.pidx[userName]});
                     ws.send(msgToSend);
                     counterWs.send(msgToSend);
 

@@ -18,7 +18,7 @@ function Board(p1name, p1ws, p2name, p2ws) {
     }
 
     this.judge = function(_y, _x, stone, board) {
-        console.log(`stone = ${stone}`);
+        board[_y][_x] = stone;
         
         let x = _x, y = _y;
         let count=0;
