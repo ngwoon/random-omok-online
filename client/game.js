@@ -1,4 +1,5 @@
 const BOARD_SIZE = 18;
+const SERVER = "http://localhost:8080";
 let clickable=true;
 let TURN;
 
@@ -34,9 +35,14 @@ function init() {
         }
         board.appendChild(document.createElement("br"));
     }
-}
 
-init();
+    window.onbeforeunload = function(event) {
+        event.preventDefault();
+        const msg = incodeMsg({type: "out", sender: ID});
+        ws.send(msg);
+        ws.close();
+    }
+}
 
 const SOCK_SERVER = "ws://localhost:3000"
 const ID = localStorage.getItem("user_name");
@@ -52,7 +58,7 @@ function decodeMsg(message) {
 }
 
 ws.onopen = function(event) {
-    const msg = incodeMsg({ "type": "connection", "data": ID });
+    const msg = incodeMsg({ "type": "connection", "sender": ID });
     ws.send(msg);
 }
 
@@ -63,6 +69,7 @@ ws.onmessage = function(event) {
     switch(message.type) {
         case "connection":
             COLOR = message.data;
+            console.log(COLOR);
             if(COLOR === 0) {
                 clickable = true;
                 info.innerHTML = "당신 차례입니다!";
@@ -92,7 +99,13 @@ ws.onmessage = function(event) {
                 alert("당신이 졌습니다 ㅠㅠ");
             
             ws.close();
-            location.href="http://localhost:8080";
+            location.href=SERVER;
+            break;
+        
+        case "out":
+            alert("상대가 나갔습니다.");
+            ws.close();
+            location.href=SERVER;
             break;
     }
 }
@@ -100,3 +113,7 @@ ws.onmessage = function(event) {
 ws.onerror = function(event) {
     console.log(`Error : ${event.data}`);
 }
+
+
+init();
+

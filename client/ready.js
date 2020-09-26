@@ -10,6 +10,12 @@ function init() {
         } else
             num.innerHTML = --counter;
     }, 1000);
+
+    window.onbeforeunload = function(event) {
+        event.preventDefault();
+        if(counter != 0)
+            fetch(SERVER+"/out");
+    }
 }
 
 init();

@@ -35,8 +35,14 @@ const router = {
     'GET/check': checkHandler,
     'GET/ready': indexHandler,
     'GET/game': indexHandler,
+    'GET/out': outHandler,
     'default': noResponse
 };
+
+function outHandler(request, response) {
+    const userName = cookie.parse(request.headers.cookie).user_name;
+    inGame.exitPlayers.push(userName);
+}
 
 function checkHandler(request, response) {
     const cookies = cookie.parse(request.headers.cookie);
@@ -135,7 +141,18 @@ wss.on("connection", function(ws) {
         switch(msg.type) {
             case "connection":
                 console.log("connection message!!");
+
                 const counter = match.readyPlayers[userName];
+
+                // 상대방이 ready 도중에 나갔다면
+                const eidx = inGame.exitPlayers.indexOf(counter);
+                if(eidx != -1) {
+                    inGame.exitPlayers.splice(eidx, 1);
+                    const msg = incodeMsg({type: "out"});
+                    ws.send(msg);
+                    ws.close();
+                    return;
+                }
 
                 if(inGame.clientWs[counter] !== undefined) {
 
@@ -178,6 +195,8 @@ wss.on("connection", function(ws) {
                 counterWs.send(msgToSend);
 
                 if(isOver) {
+                    const counter = board.pname[board.pidx[userName]^1];
+
                     msgToSend = incodeMsg({"type": "end", "data": board.pidx[userName]});
                     ws.send(msgToSend);
                     counterWs.send(msgToSend);
@@ -186,7 +205,7 @@ wss.on("connection", function(ws) {
                     counterWs.close();
 
                     delete inGame.boardTalbe[userName];
-                    // delete board;
+                    delete inGame.boardTable[counter];
                 }
             }
             break;
@@ -198,12 +217,14 @@ wss.on("connection", function(ws) {
                 const userWs = board.pws[userName];
                 const counterWs = board.pws[counter];
                 
-                counterWs.send({type: "end", data: board.pidx[counter]});
+                const msg = incodeMsg({type: "out"});
+                counterWs.send(msg);
 
                 userWs.close();
                 counterWs.close();
 
                 delete inGame.boardTable[userName];
+                delete inGame.boardTable[counter];
             }
             break;
         }
