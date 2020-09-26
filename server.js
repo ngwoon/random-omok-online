@@ -142,10 +142,6 @@ wss.on("connection", function(ws) {
                     inGame.boardTable[userName] = board;
                     inGame.boardTable[counter] = board;
 
-                    console.log(board);
-                    console.log(userName);
-                    console.log(counter);
-
                     delete match.readyPlayers[userName];
                     delete match.readyPlayers[counter];
 
@@ -169,10 +165,12 @@ wss.on("connection", function(ws) {
                 
                 const board = inGame.boardTable[userName];
                 
-                const isOver = board.judge(pos[0], pos[1], board.pidx[userName], board.board);
+                const isOver = board.judge(pos[0], pos[1], board.pidx[userName]);
 
                 const userWs = board.pws[userName];
                 const counterWs = board.pws[board.pname[board.pidx[userName]^1]];
+
+                board.turn ^= 1;
 
                 let msgToSend = incodeMsg({"type": "pos", "data": msg.data, "color": board.pidx[userName]});
 
