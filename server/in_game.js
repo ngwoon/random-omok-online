@@ -1,0 +1,2 @@
+exports.boardTable = {};
+exports.clientWs = {};
