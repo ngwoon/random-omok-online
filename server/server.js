@@ -47,22 +47,29 @@ function outHandler(request, response) {
 function checkHandler(request, response) {
     const cookies = cookie.parse(request.headers.cookie);
     const userName = cookies.user_name;
-    console.log(`${userName} send check`);
     match.waitings[userName] = response;
     match.matching.emit("wait");
 }
 
 function indexHandler(request, response) {
-    let cookies = null;
-    if(request.headers.cookie !== undefined)
-        cookies = "Cookie Exists";
-    
+
+    const current_cookie = request.headers.cookie;
+    if(current_cookie !== undefined) {
+        const userName = cookie.parse(current_cookie).user_name;
+        if(inGame.boardTable[userName] !== undefined) {
+            const data = fs.readFileSync("./already_in_game.html");
+            response.writeHead(200, {"Content-Type": "text/html"});
+            response.end(data);
+            return;
+        }
+    }
+
     const parsedUrl = url.parse(request.url);
     let resource = parsedUrl.pathname.substr(1);
 
     if(resource === "")
         resource = "index";
-        
+    
     resource = `../client/${resource}.html`;
 
     fs.readFile(resource, "utf-8", function(error, data) {
@@ -71,18 +78,21 @@ function indexHandler(request, response) {
             noResponse(req, res);
         }
         else {
-            if(cookies !== null) {
-                response.writeHead(200, {"Content-Type": "text/html"});
-            }
-            else {
+
+            if(cookie === undefined) {
                 const userName = match.genUserNum(USER_LIMIT);
+                inGame.invalidUserName.push(userName);
+                console.log("invalidUserName");
+                console.log(inGame.invalidUserName);
                 response.writeHead(200, {
                     "Content-Type": "text/html",
                     "Set-Cookie": [`user_name=${userName}`],
                     "httpOnly": true
                 });
                 match.waitings[userName] = null;
-            }
+            } else
+                response.writeHead(200, {"Content-Type": "text/html"});
+
             response.end(data);
         }
     });
@@ -204,7 +214,7 @@ wss.on("connection", function(ws) {
                     ws.close();
                     counterWs.close();
 
-                    delete inGame.boardTalbe[userName];
+                    delete inGame.boardTable[userName];
                     delete inGame.boardTable[counter];
                 }
             }

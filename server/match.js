@@ -39,15 +39,6 @@ exports.matching.on("wait", function() {
     return matchPlayers;
 });
 
-// exports.matching.on("find", function(userName, response, idx) {
-//     exports.waitings.splice(idx, 1);
-//     idx = exports.waitings.indexOf(userName);
-//     exports.waitings.splice(idx, 1);
-
-//     response.writeHead(200, {"Content-Type": "text"});
-//     response.end("연결 성공!!");
-// })
-
 exports.genUserNum = function(LIMIT) {
     let isExist = true;
     let newUser;
