@@ -26,6 +26,11 @@ function init() {
             location.href = SERVER+"/ready";
         }
     });
+
+    window.onbeforeunload = function(event) {
+        event.preventDefault();
+        fetch(SERVER+"/out");
+    }
 }
 
 init();

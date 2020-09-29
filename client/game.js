@@ -1,5 +1,6 @@
 const BOARD_SIZE = 18;
 const SERVER = "http://localhost:8080";
+const LS_USER = "user_name";
 let clickable=true;
 let TURN;
 
@@ -39,6 +40,7 @@ function init() {
     window.onbeforeunload = function(event) {
         event.preventDefault();
         const msg = incodeMsg({type: "out", sender: ID});
+        localStorage.removeItem(LS_USER);
         ws.send(msg);
         ws.close();
     }
@@ -69,6 +71,8 @@ ws.onmessage = function(event) {
     switch(message.type) {
         case "connection":
             COLOR = message.data;
+            const colorInfo = document.querySelector(".js-color");
+            colorInfo.innerHTML = COLOR === 0 ? "흑" : "백";
             console.log(COLOR);
             if(COLOR === 0) {
                 clickable = true;
