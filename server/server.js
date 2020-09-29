@@ -41,7 +41,7 @@ const router = {
 
 function outHandler(request, response) {
     const userName = cookie.parse(request.headers.cookie).user_name;
-    inGame.exitPlayers.push(userName);
+    delete match.waitings[userName];
 }
 
 function checkHandler(request, response) {
@@ -79,11 +79,8 @@ function indexHandler(request, response) {
         }
         else {
 
-            if(cookie === undefined) {
+            if(current_cookie === undefined) {
                 const userName = match.genUserNum(USER_LIMIT);
-                inGame.invalidUserName.push(userName);
-                console.log("invalidUserName");
-                console.log(inGame.invalidUserName);
                 response.writeHead(200, {
                     "Content-Type": "text/html",
                     "Set-Cookie": [`user_name=${userName}`],
