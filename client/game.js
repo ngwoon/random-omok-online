@@ -40,21 +40,20 @@ function init() {
 
     window.onbeforeunload = function(event) {
         event.preventDefault();
-        const message = incodemessage({type: "out", sender: ID});
+        const message = incodeMsg({type: "out", sender: ID});
         localStorage.removeItem(LS_USER);
         ws.send(message);
         ws.close();
     }
 
-    document.addEventListener('keydown', function(event) {
-        const keyCode = event.code;
-
-        if(keyCode === "Enter") {
+    window.addEventListener('keypress', function(event) {
+        if(event.code === "Enter") {
+            event.preventDefault();
             const chatbox = document.querySelector(".js-chatbox");
             const content = chatbox.value.trim();
             if(content !== "") {
-                const message = incodemessage({type: "chat", data: content, sender: ID});
-                ws.send(message);                
+                const message = incodeMsg({type: "chat", data: content, sender: ID});
+                ws.send(message);              
             }
             chatbox.value = "";
         }
@@ -66,21 +65,21 @@ const ID = localStorage.getItem("user_name");
 const ws = new WebSocket(SOCK_SERVER);
 let COLOR;
 
-function incodemessage(message) {
+function incodeMsg(message) {
     return JSON.stringify(message);
 }
 
-function decodemessage(message) {
+function decodeMsg(message) {
     return JSON.parse(message);
 }
 
 ws.onopen = function(event) {
-    const message = incodemessage({ "type": "connection", "sender": ID });
+    const message = incodeMsg({ "type": "connection", "sender": ID });
     ws.send(message);
 }
 
 ws.onmessage = function(event) {
-    const message = decodemessage(event.data);
+    const message = decodeMsg(event.data);
     const info = document.querySelector(".js-info");
 
     switch(message.type) {
@@ -136,9 +135,11 @@ ws.onmessage = function(event) {
                     chatlog.innerHTML = "상대 : " + message.data;
                 }
             } else {
-                for(let i=chatLogCounter; i>=1; ++i) {
+                for(let i=chatLogCounter === 7 ? 6 : chatLogCounter; i>=1; --i) {
                     const upchat = document.querySelector(`#chatlog${i+1}`);
                     const downchat = document.querySelector(`#chatlog${i}`);
+                    console.log(`upchat : ${upchat.innerHTML}`);
+                    console.log(`downchat : ${downchat.innerHTML}`);
                     upchat.innerHTML = downchat.innerHTML;
                 }
 
@@ -148,9 +149,9 @@ ws.onmessage = function(event) {
                 } else {
                     chatlog.innerHTML = "상대 : " + message.data;
                 }
-                
-                ++chatLogCounter;
             }
+            if(chatLogCounter !== 7)
+                ++chatLogCounter;
             break;
     }
 }

@@ -47,7 +47,7 @@
 }
 
 .chatbox {
-    max-width: 550px;
+    width: 200px;
     font: 15px arial, sans-serif;
     background-color: white;
     border-style: solid;
@@ -61,5 +61,5 @@
 }
 
 .chatlog {
-    font: 15px arial, sans-serif;
+    font: 10px arial, sans-serif;
 }
