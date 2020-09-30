@@ -1,8 +1,9 @@
 const BOARD_SIZE = 18;
 const SERVER = "http://localhost:8080";
 const LS_USER = "user_name";
+const CHAT_LOG_SIZE = 7;
 let clickable=true;
-let TURN;
+let chatLogCounter = 0;
 
 function paintStone(pos, color) {
     const piece = document.querySelector("#"+pos);
@@ -23,7 +24,7 @@ function onPieceClick(pos) {
 }
 
 function init() {
-    const board = document.getElementById("board");
+    const board = document.querySelector(".js-board");
     for(let i=1; i<=BOARD_SIZE; ++i) {
         for(let j=1; j<=BOARD_SIZE; ++j) {
             let newArea = document.createElement("div");
@@ -39,11 +40,25 @@ function init() {
 
     window.onbeforeunload = function(event) {
         event.preventDefault();
-        const msg = incodeMsg({type: "out", sender: ID});
+        const message = incodemessage({type: "out", sender: ID});
         localStorage.removeItem(LS_USER);
-        ws.send(msg);
+        ws.send(message);
         ws.close();
     }
+
+    document.addEventListener('keydown', function(event) {
+        const keyCode = event.code;
+
+        if(keyCode === "Enter") {
+            const chatbox = document.querySelector(".js-chatbox");
+            const content = chatbox.value.trim();
+            if(content !== "") {
+                const message = incodemessage({type: "chat", data: content, sender: ID});
+                ws.send(message);                
+            }
+            chatbox.value = "";
+        }
+    });
 }
 
 const SOCK_SERVER = "ws://localhost:3000"
@@ -51,21 +66,21 @@ const ID = localStorage.getItem("user_name");
 const ws = new WebSocket(SOCK_SERVER);
 let COLOR;
 
-function incodeMsg(message) {
+function incodemessage(message) {
     return JSON.stringify(message);
 }
 
-function decodeMsg(message) {
+function decodemessage(message) {
     return JSON.parse(message);
 }
 
 ws.onopen = function(event) {
-    const msg = incodeMsg({ "type": "connection", "sender": ID });
-    ws.send(msg);
+    const message = incodemessage({ "type": "connection", "sender": ID });
+    ws.send(message);
 }
 
 ws.onmessage = function(event) {
-    const message = decodeMsg(event.data);
+    const message = decodemessage(event.data);
     const info = document.querySelector(".js-info");
 
     switch(message.type) {
@@ -110,6 +125,32 @@ ws.onmessage = function(event) {
             alert("상대가 나갔습니다.");
             ws.close();
             location.href=SERVER;
+            break;
+        
+        case "chat":
+            if(chatLogCounter === 0) {
+                const chatlog = document.querySelector("#chatlog1");
+                if(message.sender === ID) {
+                    chatlog.innerHTML = "나 : " + message.data;
+                } else {
+                    chatlog.innerHTML = "상대 : " + message.data;
+                }
+            } else {
+                for(let i=chatLogCounter; i>=1; ++i) {
+                    const upchat = document.querySelector(`#chatlog${i+1}`);
+                    const downchat = document.querySelector(`#chatlog${i}`);
+                    upchat.innerHTML = downchat.innerHTML;
+                }
+
+                const chatlog = document.querySelector("#chatlog1");
+                if(message.sender === ID) {
+                    chatlog.innerHTML = "나 : " + message.data;
+                } else {
+                    chatlog.innerHTML = "상대 : " + message.data;
+                }
+                
+                ++chatLogCounter;
+            }
             break;
     }
 }
