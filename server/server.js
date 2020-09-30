@@ -41,6 +41,7 @@ const router = {
 
 function outHandler(request, response) {
     const userName = cookie.parse(request.headers.cookie).user_name;
+    response.writeHead(200, {"Set-Cookie": ["user_name=",`expires=${Date.now()}`]})
     delete match.waitings[userName];
 }
 
@@ -60,7 +61,6 @@ function indexHandler(request, response) {
             const data = fs.readFileSync("./already_in_game.html");
             response.writeHead(200, {"Content-Type": "text/html"});
             response.end(data);
-            return;
         }
     }
 
@@ -146,8 +146,8 @@ wss.on("connection", function(ws) {
 
         let userName = msg.sender;
         switch(msg.type) {
-            case "connection":
-                console.log("connection message!!");
+            case "connection": {
+                console.log(`connection message from ${userName}`);
 
                 const counter = match.readyPlayers[userName];
 
@@ -181,8 +181,8 @@ wss.on("connection", function(ws) {
                 }
                 else
                     inGame.clientWs[userName] = ws;
-
-                break;
+            }
+            break;
 
             case "pos": {
                 const pos = msg.data.substr(1).split("-");
@@ -232,6 +232,20 @@ wss.on("connection", function(ws) {
 
                 delete inGame.boardTable[userName];
                 delete inGame.boardTable[counter];
+            }
+            break;
+
+            case "chat": {
+                console.log(`get chat ${msg.data} from ${userName}`);
+
+                const board = inGame.boardTable[userName];
+                const counter = board.pname[board.pidx[userName]^1];
+                const userWs = board.pws[userName];
+                const counterWs = board.pws[counter];
+
+                userWs.send(message);
+                counterWs.send(message);
+
             }
             break;
         }
