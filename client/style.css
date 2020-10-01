@@ -6,7 +6,7 @@
 }
 .board {
     margin: 15px;
-    float: left;
+    float: right;
 }
 
 .black-stone {
@@ -31,7 +31,7 @@
 }
 
 .chatborder {
-    float: right;
+    float: left;
     border-style: solid;
     background-color: #f6f9f6;
     border-width: 3px;
@@ -62,4 +62,11 @@
 
 .chatlog {
     font: 10px arial, sans-serif;
+}
+
+.left {
+    float: left;
+}
+.right {
+    float: right;
 }

@@ -41,8 +41,7 @@ const router = {
 
 function outHandler(request, response) {
     const userName = cookie.parse(request.headers.cookie).user_name;
-    response.writeHead(200, {"Set-Cookie": ["user_name=",`expires=${Date.now()}`]})
-    delete match.waitings[userName];
+    inGame.exitPlayers[userName] = true;
 }
 
 function checkHandler(request, response) {
@@ -151,13 +150,19 @@ wss.on("connection", function(ws) {
 
                 const counter = match.readyPlayers[userName];
 
+                console.log(`counter=${counter}`);
+                console.log("exitPlayer");
+                console.log(inGame.exitPlayers);
+
                 // 상대방이 ready 도중에 나갔다면
-                const eidx = inGame.exitPlayers.indexOf(counter);
-                if(eidx != -1) {
-                    inGame.exitPlayers.splice(eidx, 1);
+                if(inGame.exitPlayers[counter] !== undefined) {
+                    delete inGame.exitPlayers[counter];
                     const msg = incodeMsg({type: "out"});
                     ws.send(msg);
                     ws.close();
+
+                    delete match.readyPlayers[userName];
+                    delete match.readyPlayers[counter];
                     return;
                 }
 
@@ -245,7 +250,6 @@ wss.on("connection", function(ws) {
 
                 userWs.send(message);
                 counterWs.send(message);
-
             }
             break;
         }

@@ -3,17 +3,17 @@ const num = document.querySelector(".js-info");
 
 function init() {
     let counter = 3;
-    const countInterval = setInterval(() => { 
-        if(counter == 0) {
+    const countInterval = setInterval(() => {
+        num.innerHTML = --counter;
+        if(counter === 0) {
             clearInterval(countInterval);
             location.href = SERVER+"/game";
-        } else
-            num.innerHTML = --counter;
+        }
     }, 1000);
 
     window.onbeforeunload = function(event) {
         event.preventDefault();
-        if(counter != 0)
+        if(counter !== 0)
             fetch(SERVER+"/out");
     }
 }

@@ -1,3 +1,3 @@
 exports.boardTable = {};
 exports.clientWs = {};
-exports.exitPlayers = [];
+exports.exitPlayers = {};

@@ -23,6 +23,12 @@ function init() {
         console.log(response.ok);
         if(response.ok) {
             clearInterval(waitInterval);
+
+            // 사용자가 의도적으로 게임을 끈 상태랑, 매칭이 되어서 ready 페이지로 넘어갈 때랑 구분하기 위해
+            // ready 상태 진입 시 onbeforeunload 이벤트를 침묵시킨다.
+            window.onbeforeunload = function(event) {
+                event.preventDefault();
+            }
             location.href = SERVER+"/ready";
         }
     });
