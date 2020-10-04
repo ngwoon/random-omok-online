@@ -181,6 +181,8 @@ wss.on("connection", function(ws) {
                         const timeOutMsg = incodeMsg({type: "time", data: board.time});
                         ws.send(timeOutMsg);
                         counterWs.send(timeOutMsg);
+
+                        console.log(board.pname, board.time);
                         
                         if(board.time === 0) {
                             board.time = 10;
@@ -235,6 +237,9 @@ wss.on("connection", function(ws) {
                     ws.close();
                     counterWs.close();
 
+                    // 명시적으로 시간제어 해제
+                    clearTimeout(board.currentTimeout);
+
                     delete inGame.boardTable[userName];
                     delete inGame.boardTable[counter];
                 }
@@ -253,6 +258,9 @@ wss.on("connection", function(ws) {
 
                 userWs.close();
                 counterWs.close();
+
+                // 명시적으로 시간제어 해제
+                clearTimeout(board.currentTimeout);
 
                 delete inGame.boardTable[userName];
                 delete inGame.boardTable[counter];
