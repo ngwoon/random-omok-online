@@ -63,6 +63,10 @@ function Board(p1name, p1ws, p2name, p2ws) {
     
         return false;
     }
+
+    this.time = 10;
+    this.checkTime = null;
+    this.currentTimeout = null;
 }
 
 module.exports = Board;

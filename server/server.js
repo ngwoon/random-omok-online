@@ -150,10 +150,6 @@ wss.on("connection", function(ws) {
 
                 const counter = match.readyPlayers[userName];
 
-                console.log(`counter=${counter}`);
-                console.log("exitPlayer");
-                console.log(inGame.exitPlayers);
-
                 // 상대방이 ready 도중에 나갔다면
                 if(inGame.exitPlayers[counter] !== undefined) {
                     delete inGame.exitPlayers[counter];
@@ -168,7 +164,9 @@ wss.on("connection", function(ws) {
 
                 if(inGame.clientWs[counter] !== undefined) {
 
-                    const board = new Board(userName, ws, counter, inGame.clientWs[counter]);
+                    const counterWs = inGame.clientWs[counter];
+
+                    const board = new Board(userName, ws, counter, counterWs);
 
                     inGame.boardTable[userName] = board;
                     inGame.boardTable[counter] = board;
@@ -179,8 +177,24 @@ wss.on("connection", function(ws) {
                     const msgToP1 = incodeMsg({"type": "connection", "data": board.pidx[userName]});
                     const msgToP2 = incodeMsg({"type": "connection", "data": board.pidx[counter]});
 
+                    board.checkTime = function() {
+                        const timeOutMsg = incodeMsg({type: "time", data: board.time});
+                        ws.send(timeOutMsg);
+                        counterWs.send(timeOutMsg);
+                        
+                        if(board.time === 0) {
+                            board.time = 10;
+                            board.checkTime();
+                        } else {
+                            --board.time;
+                            board.currentTimeout = setTimeout(board.checkTime, 1000);
+                        }
+                    }
+
+                    board.checkTime();
+
                     ws.send(msgToP1);
-                    inGame.clientWs[counter].send(msgToP2);
+                    counterWs.send(msgToP2);
 
                     delete inGame.clientWs[counter];
                 }
@@ -199,12 +213,17 @@ wss.on("connection", function(ws) {
                 const userWs = board.pws[userName];
                 const counterWs = board.pws[board.pname[board.pidx[userName]^1]];
 
-                board.turn ^= 1;
-
                 let msgToSend = incodeMsg({"type": "pos", "data": msg.data, "color": board.pidx[userName]});
 
                 userWs.send(msgToSend);
                 counterWs.send(msgToSend);
+
+                // 시간 10초부터 재측정
+                if(board.currentTimeout !== null)
+                    clearTimeout(board.currentTimeout);
+                
+                board.time = 10;
+                board.checkTime();
 
                 if(isOver) {
                     const counter = board.pname[board.pidx[userName]^1];
