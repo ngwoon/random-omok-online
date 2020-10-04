@@ -152,6 +152,29 @@ ws.onmessage = function(event) {
             }
             if(chatLogCounter !== 7)
                 ++chatLogCounter;
+            
+            break;
+
+        case "time":
+
+            const time = message.data;
+            const timeInfo = document.querySelector(".js-time");
+            console.log(time);
+            if(time === 0) {
+                timeInfo.innerHTML = "시간초과!";
+                const turnInfo = document.querySelector(".js-info");
+                
+                if(clickable) {
+                    turnInfo.innerHTML = "상대가 두고 있습니다..";
+                    clickable = false;
+                } else {
+                    turnInfo.innerHTML = "당신 차례입니다!";
+                    clickable = true;
+                }
+            } else {
+                timeInfo.innerHTML = time + " 초 남았습니다!";
+            }
+            
             break;
     }
 }
