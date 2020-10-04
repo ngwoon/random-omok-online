@@ -7,6 +7,7 @@
 .board {
     margin: 15px;
     float: right;
+    background-color: peru;
 }
 
 .black-stone {
