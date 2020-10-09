@@ -1,3 +1,5 @@
+/* 게임 화면 관련 css */
+
 .piece {
     border: 2px solid black;
     width: 35px;
@@ -67,7 +69,29 @@
 
 .left {
     float: left;
+    width: 800px;
 }
 .right {
     float: right;
+    width: 700px;
+}
+
+.info {
+    padding-left: 80px;
+}
+
+/* ready, index 페이지 */
+.container {
+    height: 200px;
+    position: relative;
+}
+
+h1 { 
+    color: #111; font-family: 'Helvetica Neue', sans-serif; font-size: 50px; font-weight: bold; letter-spacing: -1px; line-height: 1;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }

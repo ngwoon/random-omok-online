@@ -172,7 +172,11 @@ ws.onmessage = function(event) {
                     clickable = true;
                 }
             } else {
-                timeInfo.innerHTML = time + " 초 남았습니다!";
+                if(time > 3)
+                    timeInfo.innerHTML = time + " 초 남았습니다!";
+                else
+                    timeInfo.innerHTML = '<span style="color: red;">' + time + "</span>" + " 초 남았습니다!";
+
             }
             
             break;
