@@ -183,6 +183,5 @@ ws.onerror = function(event) {
     console.log(`Error : ${event.data}`);
 }
 
-
 init();
 
